@@ -21,7 +21,6 @@
                     <img src="images/SPECIFIC.jpg" width="100%"/>
                     <h4 class="mb-3 text-center">Production Management System</h4>
                     <a href="login.php"><button class="btn btn-primary w-100">Login</button></a>
-                    </form>
                 </div>
             </div>
         </div>
@@ -30,3 +29,4 @@
 
 </body>
 </html>
+
