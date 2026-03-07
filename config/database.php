@@ -1,5 +1,5 @@
 <?php
-$host = 'localhost';
+$host = '127.0.0.1';
 $db   = 'production';
 $user = 'webuser';
 $pass = 'Swansea';
@@ -12,5 +12,6 @@ $options = [
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 $pdo = new PDO($dsn, $user, $pass, $options);
+
 
 ?>
