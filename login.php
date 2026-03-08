@@ -47,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="col-md-4">
             <div class="card shadow">
                 <div class="card-body">
+                    <img src="images/SPECIFIC.jpg" width="100%"/>
                     <h4 class="mb-3 text-center">Production Management System</h4>
 
                     <?php if ($error): ?>
