@@ -2,6 +2,7 @@
 $pageTitle = "Create Module Test";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 // Fetch products for dropdown
 $productsStmt = $pdo->query("

@@ -2,6 +2,7 @@
 $pageTitle = "View Module Test";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $testId = $_GET['id'] ?? null;
 if (!$testId) {

@@ -2,6 +2,7 @@
 $pageTitle = "Process Steps";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $steps = $pdo->query("SELECT * FROM process_steps ORDER BY step_name")->fetchAll();
 ?>

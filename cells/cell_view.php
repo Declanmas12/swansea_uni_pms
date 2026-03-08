@@ -5,6 +5,7 @@
 $pageTitle = "Cell Viewer";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $cellCode = $_GET['cell'] ?? '';
 if (!$cellCode) die('Cell not specified');

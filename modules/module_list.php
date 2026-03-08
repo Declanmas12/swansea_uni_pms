@@ -5,6 +5,7 @@
 $pageTitle = "Modules";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $search = trim($_GET['search'] ?? '');
 $status = $_GET['status'] ?? '';

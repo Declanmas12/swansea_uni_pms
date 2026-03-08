@@ -2,6 +2,7 @@
 $pageTitle = "Step Parameters";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $step_id = $_GET['step_id'];
 

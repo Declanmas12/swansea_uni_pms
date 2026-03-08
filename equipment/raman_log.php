@@ -5,6 +5,7 @@
 $pageTitle = "SPECIFIC Labs A005 - Raman Calibration Log";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 // Query to fetch data
 $stmt = $pdo->prepare("SELECT date_time, user, intensity, peak_pos, wavelength, beam_steer FROM production.raman_log ORDER BY date_time DESC limit 10");

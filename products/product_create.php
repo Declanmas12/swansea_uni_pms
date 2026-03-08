@@ -3,6 +3,7 @@
 $pageTitle = "Product Creation";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 // Fetch available R&D flows (draft or active)
 $flowsStmt = $pdo->prepare("SELECT id, flow_name, version FROM process_flows WHERE status IN ('draft','active') ORDER BY flow_name, version");

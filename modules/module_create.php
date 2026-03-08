@@ -5,6 +5,7 @@
 $pageTitle = "Create Module";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 // Fetch products for dropdown
 $productsStmt = $pdo->query("SELECT id, product_code FROM products WHERE active = 1 AND type='module' ORDER BY product_code");

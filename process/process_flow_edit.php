@@ -2,6 +2,7 @@
 $pageTitle = "Process Flow Editor";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $id = $_GET['id'] ?? null;
 

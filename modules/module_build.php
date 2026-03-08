@@ -2,6 +2,7 @@
 $pageTitle = "Module Build";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $moduleId = (int)($_GET['id'] ?? 0);
 

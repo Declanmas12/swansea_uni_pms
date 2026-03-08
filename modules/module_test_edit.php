@@ -2,6 +2,7 @@
 $pageTitle = "Edit Module Test";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 // ---- Load test ----
 $testId = $_GET['id'] ?? null;

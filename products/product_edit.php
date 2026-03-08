@@ -3,6 +3,7 @@
 $pageTitle = "Product Editor";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) {

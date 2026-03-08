@@ -2,6 +2,7 @@
 $pageTitle = "Flow Builder";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $flow_id = $_GET['id'];
 

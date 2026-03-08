@@ -5,6 +5,7 @@
 $pageTitle = "Module Test Execute";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $moduleId = (int)($_GET['module_id'] ?? 0);
 if ($moduleId <= 0) {

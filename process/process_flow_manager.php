@@ -2,6 +2,7 @@
 $pageTitle = "Process Flow Manager";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $flow_id = $_GET['id'] ?? null;
 if (!$flow_id) {
