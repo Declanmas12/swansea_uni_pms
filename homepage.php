@@ -4,7 +4,7 @@
 // ==========================
 $pageTitle = "Production Dashboard";
 require "config/database.php";
-require "../config/auth.php";
+require "config/auth.php";
 require "config/header.php";
 
 // ----------------- Fetch Active Batches -----------------
