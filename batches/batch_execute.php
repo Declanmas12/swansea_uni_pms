@@ -150,9 +150,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $value = (float)$raw;
-                $passFail = ($value >= $param['min_value'] && $value <= $param['max_value'])
-                    ? 'PASS'
-                    : 'FAIL';
+                $min = $param['min_value'];
+                $max = $param['max_value'];
+                $pass = true;
+                if ($min !== null && $value < $min) {
+                    $pass = false;
+                }
+                if ($max !== null && $value > $max) {
+                    $pass = false;
+                }
+                $passFail = $pass ? 'PASS' : 'FAIL';
 
                 $pdo->prepare("
                     INSERT INTO batch_step_data
@@ -186,9 +193,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     $value = (float)$raw;
-                    $passFail = ($value >= $param['min_value'] && $value <= $param['max_value'])
-                        ? 'PASS'
-                        : 'FAIL';
+                    $min = $param['min_value'];
+                    $max = $param['max_value'];
+                    $pass = true;
+                    if ($min !== null && $value < $min) {
+                        $pass = false;
+                    }
+                    if ($max !== null && $value > $max) {
+                        $pass = false;
+                    }
+                    $passFail = $pass ? 'PASS' : 'FAIL';
 
                     $pdo->prepare("
                         INSERT INTO cell_step_data
@@ -418,7 +432,17 @@ function toggleScrap() {
                     <table class="param-table">
                         <tr>
                             <?php foreach ($batchParams as $p): ?>
-                                <th><?= htmlspecialchars($p['parameter_name']) ?><br>(<?= $p['min_value'] ?>–<?= $p['max_value'] ?> <?= htmlspecialchars($p['unit']) ?>)</th>
+                                <?php
+                                    $range = '';
+                                    if ($p['min_value'] !== null && $p['max_value'] !== null) {
+                                        $range = "{$p['min_value']}–{$p['max_value']}";
+                                    } elseif ($p['min_value'] !== null) {
+                                        $range = "≥ {$p['min_value']}";
+                                    } elseif ($p['max_value'] !== null) {
+                                        $range = "≤ {$p['max_value']}";
+                                    }
+                                ?>
+                                <th><?= htmlspecialchars($p['parameter_name']) ?><br>(<?= $range ?> <?= htmlspecialchars($p['unit']) ?>)</th>
                             <?php endforeach; ?>
                         </tr>
                         <tr>
@@ -443,7 +467,17 @@ function toggleScrap() {
                     <tr>
                         <th>Cell</th>
                         <?php foreach ($cellParams as $p): ?>
-                            <th><?= htmlspecialchars($p['parameter_name']) ?><br>(<?= $p['min_value'] ?>–<?= $p['max_value'] ?> <?= htmlspecialchars($p['unit']) ?>)</th>
+                            <?php
+                                    $range = '';
+                                    if ($p['min_value'] !== null && $p['max_value'] !== null) {
+                                        $range = "{$p['min_value']}–{$p['max_value']}";
+                                    } elseif ($p['min_value'] !== null) {
+                                        $range = "≥ {$p['min_value']}";
+                                    } elseif ($p['max_value'] !== null) {
+                                        $range = "≤ {$p['max_value']}";
+                                    }
+                                ?>
+                                <th><?= htmlspecialchars($p['parameter_name']) ?><br>(<?= $range ?> <?= htmlspecialchars($p['unit']) ?>)</th>
                         <?php endforeach; ?>
                     </tr>
                     <?php foreach ($cells as $cell): ?>
@@ -501,5 +535,6 @@ function toggleScrap() {
         </form>
     </div>
 <?php endif ?>
+
 
 <?php require "../config/footer.php"; ?>
