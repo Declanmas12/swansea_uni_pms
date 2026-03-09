@@ -2,6 +2,7 @@
 $pageTitle = "New Liquid Nitrogen Dewar";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $id = $_GET['id'] ?? null;
 
@@ -52,3 +53,4 @@ if ($id) {
 </form>
 
 <?php require "../config/footer.php"; ?>
+
