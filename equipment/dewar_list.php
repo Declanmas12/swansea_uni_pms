@@ -2,6 +2,7 @@
 $pageTitle = "LN2 Dewar List";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $stmt = $pdo->query("SELECT * FROM production.dewars");
 $dewars = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -40,5 +41,6 @@ $dewars = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php endforeach; ?>
     </tbody>
 </table>
+
 
 <?php require "../config/footer.php"; ?>
