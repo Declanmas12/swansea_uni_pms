@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = $pdo->lastInsertId();
     }
 
-    header("Location: process_flow_builder.php?id=" . $id);
+    header("Location: process_flow_manager.php?id=" . $id);
     exit;
 }
 
@@ -121,3 +121,4 @@ if ($id) {
 </div>
 
 <?php require "../config/footer.php"; ?>
+
