@@ -2,6 +2,7 @@
 $pageTitle = "Liquid Nitrogen Dewar Monitoring";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $dewar_id = $_GET['dewar_id'];
 
@@ -276,4 +277,5 @@ $values[]=$row['v'];
         }
     });
 </script>
+
 <?php require "../config/footer.php"; ?>
