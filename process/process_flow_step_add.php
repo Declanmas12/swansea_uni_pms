@@ -1,23 +1,25 @@
 <?php
 require "../config/database.php";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $flow_id = $_POST['process_flow_id'];
-    $step_id = $_POST['process_step_id'];
+$flowId = $_POST['process_flow_id'];
+$stepId = $_POST['process_step_id'];
 
-    // Get the current max step_order for this flow
-    $stmt = $pdo->prepare("SELECT MAX(step_order) as max_order FROM process_flow_steps WHERE process_flow_id = ?");
-    $stmt->execute([$flow_id]);
-    $maxOrder = $stmt->fetchColumn();
-    $newOrder = $maxOrder ? $maxOrder + 1 : 1;
+/* Find next order */
+$stmt = $pdo->prepare("
+    SELECT COALESCE(MAX(step_order),0)+1
+    FROM process_flow_steps
+    WHERE process_flow_id=?
+");
+$stmt->execute([$flowId]);
+$order = $stmt->fetchColumn();
 
-    // Insert new flow step
-    $stmt = $pdo->prepare("
-        INSERT INTO process_flow_steps (process_flow_id, process_step_id, step_order)
-        VALUES (?, ?, ?)
-    ");
-    $stmt->execute([$flow_id, $step_id, $newOrder]);
+/* Insert */
+$stmt = $pdo->prepare("
+    INSERT INTO process_flow_steps
+    (process_flow_id, process_step_id, step_order)
+    VALUES (?, ?, ?)
+");
 
-    header("Location: process_flow_builder.php?id=" . $flow_id);
-    exit;
-}
+$stmt->execute([$flowId, $stepId, $order]);
+
+echo "OK";
