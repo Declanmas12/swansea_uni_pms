@@ -5,6 +5,7 @@
 $pageTitle = "Batch Execute";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
 $batchId = (int)($_GET['batch_id'] ?? 0);
 
@@ -271,6 +272,127 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // --------------------------------------------------
+        // SPLIT BATCH
+        // --------------------------------------------------
+        if (isset($_POST['split_batch'])) {
+
+            $newBatchCode = trim($_POST['new_batch_code'] ?? '');
+            $selectedCells = $_POST['split_cells'] ?? [];
+
+            if ($newBatchCode === '') {
+                throw new Exception("New batch code required.");
+            }
+
+            if (empty($selectedCells)) {
+                throw new Exception("No cells selected for split.");
+            }
+
+            // Prevent duplicate batch code
+            $exists = $pdo->prepare("SELECT COUNT(*) FROM batches WHERE batch_code=?");
+            $exists->execute([$newBatchCode]);
+
+            if ($exists->fetchColumn() > 0) {
+                throw new Exception("Batch code already exists.");
+            }
+
+            /* ------------------------------------------------
+            Create new batch
+            ------------------------------------------------ */
+
+            // Count selected cells
+            $newQty = count($selectedCells);
+
+            /* Create new batch */
+            $insertBatch = $pdo->prepare("
+                INSERT INTO batches
+                (batch_code, product_id, execution_type, process_flow_id, quantity, status, started_at)
+                VALUES (?, ?, ?, ?, ?, 'active', NOW())
+            ");
+
+            $insertBatch->execute([
+                $newBatchCode,
+                $batch['product_id'],
+                $batch['execution_type'],
+                $batch['process_flow_id'],
+                $newQty
+            ]);
+
+            $newBatchId = $pdo->lastInsertId();
+
+            if (!$newBatchId) {
+                throw new Exception("Batch creation failed.");
+            }
+
+            /* ------------------------------------------------
+            Copy step execution state
+            ------------------------------------------------ */
+
+            $copySteps = $pdo->prepare("
+                INSERT INTO batch_step_execution
+                (batch_id, process_step_id, status, started_at, completed_at, signed_by, comment)
+                SELECT ?, process_step_id, status, started_at, completed_at, signed_by, comment
+                FROM batch_step_execution
+                WHERE batch_id = ?
+                ");
+
+            $copySteps->execute([$newBatchId, $batchId]);
+
+            /* ------------------------------------------------
+            Move cells to new batch
+            ------------------------------------------------ */
+
+            $moveCell = $pdo->prepare("
+                UPDATE cells
+                SET batch_id = ?
+                WHERE cell_code = ?
+                AND batch_id = ?
+            ");
+
+            foreach ($selectedCells as $cellCode) {
+                $moveCell->execute([
+                    $newBatchId,
+                    $cellCode,
+                    $batchId
+                ]);
+            }
+
+            /* ------------------------------------------------
+            Reduce cell count of original batch
+            ------------------------------------------------ */
+
+            $updateOldQty = $pdo->prepare("
+                UPDATE batches
+                SET quantity = quantity - ?
+                WHERE id = ?
+                ");
+
+            $updateOldQty->execute([$newQty, $batchId]);
+
+            /* ------------------------------------------------
+            Optional: log history
+            ------------------------------------------------ */
+
+            $history = $pdo->prepare("
+                INSERT INTO cell_inventory_history
+                (cell_code, from_state, to_state, reference, changed_by)
+                VALUES (?, 'IN_BATCH', 'IN_BATCH', ?, ?)
+            ");
+
+            foreach ($selectedCells as $cellCode) {
+                $history->execute([
+                    $cellCode,
+                    "Split from batch {$batch['batch_code']} to {$newBatchCode}",
+                    $_SESSION['username'] ?? 'SYSTEM'
+                ]);
+            }
+
+            $pdo->commit();
+
+            header("Location: batch_execute.php?batch_id=" . $batchId);
+            exit;
+        }
+
+        // --------------------------------------------------
         // PARAMETER GATING (AUTHORITATIVE DB CHECK)
         // --------------------------------------------------
 
@@ -405,6 +527,10 @@ function toggleScrap() {
     const el = document.getElementById('scrapTable');
     el.style.display = el.style.display === 'none' ? 'table' : 'none';
 }
+function toggleSplit() {
+    const el = document.getElementById('splitTable');
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
 </script>
 
 
@@ -504,8 +630,10 @@ function toggleScrap() {
                 </button>
                 <br><br>
                 <a class="btn btn-primary" href="../cells/cell_inventory.php?search=<?=$batch['batch_code']?>">Rename Cells</a>
-                <button class="btn btn-primary" type="button" onclick="toggleScrap()">Scrap Cells</button><br><br>
-                <br>
+                <button class="btn btn-danger" type="button" onclick="toggleScrap()">Scrap Cells</button>
+                <button class="btn btn-warning" type="button" onclick="toggleSplit()">
+                    Split Cells Into New Batch
+                </button>
                 <div id="scrapTable" style="display:none;">
                     <table class="scrap-table table table-bordered" style="text-align:center;">
                         <tr><th>Scrap</th><th>Cell</th><th>Reason</th></tr>
@@ -521,7 +649,34 @@ function toggleScrap() {
                         Confirm Scrap
                     </button>
                 </div>
-                <br>
+                <div id="splitTable" style="display:none; margin-top:10px;">
+                    <h3>Split Batch</h3>
+                    <p><strong>New Batch Code</strong></p>
+                    <input type="text" name="new_batch_code" class="form-control" required>
+                    <br>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Select</th>
+                            <th>Cell</th>
+                        </tr>
+                        <?php foreach ($cells as $cell): ?>
+                        <tr>
+                            <td>
+                                <input type="checkbox"
+                                    name="split_cells[]"
+                                    value="<?= $cell['cell_code'] ?>">
+                            </td>
+                            <td><?= htmlspecialchars($cell['cell_code']) ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </table>
+                    <button type="submit"
+                            name="split_batch"
+                            class="btn btn-warning">
+                        Create Split Batch
+                    </button>
+                </div>
+                <br><br>
                 <p><strong>Comment</strong></p>
                 <textarea name="comment" style="width:100%"></textarea>
                 <br><br>
@@ -535,6 +690,5 @@ function toggleScrap() {
         </form>
     </div>
 <?php endif ?>
-
 
 <?php require "../config/footer.php"; ?>
