@@ -99,15 +99,25 @@ foreach ($rows as $r) {
 
         <div class="card shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">Add Step</h5>
-                <select id="stepSelect" class="form-select mb-2" <?= $flow['status'] === 'active' ? 'disabled' : '' ?>>
+
+                <h5 class="card-title">Step Library</h5>
+
+                <input type="text"
+                    id="stepSearch"
+                    class="form-control mb-2"
+                    placeholder="Search steps...">
+
+                <div class="step-library-container">
+                    <ul class="list-group step-library" id="stepLibrary">
                     <?php foreach ($allSteps as $s): ?>
-                        <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['step_name']) ?></option>
+                        <li class="list-group-item library-step"
+                            data-step-id="<?= $s['id'] ?>">
+                            <?= htmlspecialchars($s['step_name']) ?>
+                        </li>
                     <?php endforeach; ?>
-                </select>
-                <button id="addStepBtn" class="btn btn-primary w-100" <?= $flow['status'] === 'active' ? 'disabled' : '' ?>>
-                    Add to Flow
-                </button>
+                    </ul>
+                </div>
+
             </div>
         </div>
     </div>
@@ -136,6 +146,12 @@ foreach ($rows as $r) {
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                <?php endif; ?>
+                <?php if ($flow['status'] !== 'active'): ?>
+                    <br><button class="btn btn-sm btn-outline-danger removeStepBtn"
+                            data-id="<?= $id ?>">
+                        Remove Step
+                    </button>
                 <?php endif; ?>
             </li>
             <?php endforeach; ?>
@@ -171,14 +187,48 @@ foreach ($rows as $r) {
     background-color: #0d6efd;
     border-radius: 50%;
 }
+
+.step-library .library-step {
+    cursor: grab;
+}
+
+.step-library .library-step:active {
+    cursor: grabbing;
+}
+
+.timeline-step.dragging {
+    opacity: 0.5;
+}
 </style>
 
 <script>
+const timeline = document.getElementById('timeline');
+const library = document.getElementById('stepLibrary');
+
+/* Timeline sortable */
 new Sortable(timeline, {
     animation: 150,
     disabled: <?= $flow['status'] === 'active' ? 'true' : 'false' ?>,
+    group: {
+        name: 'steps',
+        put: true
+    },
+
+    onAdd: function (evt) {
+
+        const stepId = evt.item.dataset.stepId;
+
+        fetch('process_flow_step_add.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `process_flow_id=<?= $flow_id ?>&process_step_id=${stepId}`
+        }).then(() => location.reload());
+    },
+
     onEnd: function () {
+
         let order = [];
+
         document.querySelectorAll('#timeline li').forEach((el, idx) => {
             order.push({ id: el.dataset.id, order: idx + 1 });
         });
@@ -188,7 +238,19 @@ new Sortable(timeline, {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(order)
         });
+
     }
+});
+
+/* Library draggable */
+new Sortable(library, {
+    group: {
+        name: 'steps',
+        pull: 'clone',
+        put: false
+    },
+    sort: false,
+    animation: 150
 });
 
 if (document.getElementById('addStepBtn')) {
@@ -202,6 +264,41 @@ if (document.getElementById('addStepBtn')) {
         }).then(() => location.reload());
     });
 }
+
+document.querySelectorAll('.removeStepBtn').forEach(btn => {
+    btn.addEventListener('click', function () {
+
+        if (!confirm("Remove this step from the flow?")) return;
+
+        const id = this.dataset.id;
+
+        fetch('process_flow_step_delete.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `id=${id}`
+        }).then(() => location.reload());
+    });
+});
+
+const searchBox = document.getElementById('stepSearch');
+
+searchBox.addEventListener('input', function () {
+
+    const filter = this.value.toLowerCase();
+
+    document.querySelectorAll('#stepLibrary .library-step')
+        .forEach(step => {
+
+            const text = step.textContent;
+
+            if (text.toLowerCase().includes(filter)) {
+                step.style.display = "";
+            } else {
+                step.style.display = "none";
+            }
+
+        });
+});
 </script>
 
 <?php require "../config/footer.php"; ?>
