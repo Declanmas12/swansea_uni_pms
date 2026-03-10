@@ -2,9 +2,32 @@
 $pageTitle = "Batch List";
 require "../config/database.php";
 require "../config/header.php";
+require "../config/auth.php";
 
+/* ------------------------
+   Filters
+------------------------- */
+$product = $_GET['product'] ?? '';
+$search = trim($_GET['search'] ?? '');
 
-$sql = "
+$params = [];
+$where = [];
+
+if ($product !== '') {
+    $where[] = "p.product_code = ?";
+    $params[] = $product;
+}
+
+if ($search !== '') {
+    $where[] = "(flow_name LIKE ? OR b.batch_code LIKE ? OR p.product_code LIKE ?)";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+}
+
+$whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+
+$stmt = $pdo->prepare("
 SELECT b.*, p.product_code, p.revision,
 pf.flow_name AS flow_name, pf.version AS flow_version,
 COUNT(c.id) AS cell_count
@@ -12,19 +35,41 @@ FROM batches b
 JOIN products p ON p.id = b.product_id
 JOIN process_flows pf ON pf.id = b.process_flow_id
 LEFT JOIN cells c ON c.batch_id = b.id
-WHERE b.status IN ('planned','active', 'completed')
+$whereSql
 GROUP BY b.id
 ORDER BY b.created_at DESC
-";
+");
+$stmt->execute($params);
+$batches = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
-$batches = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+$products = $pdo->query("SELECT DISTINCT product_code FROM production.products")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <div class="d-flex justify-content-between mb-3">
     <h4>Production Batches</h4>
     <a href="batch_create.php" class="btn btn-primary">New Batch</a>
 </div>
+
+<!-- =======================
+     Filters
+======================= -->
+<form class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input class="form-control" name="search" placeholder="Search batch, product, flow name"
+               value="<?= htmlspecialchars($search) ?>">
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" name="product">
+            <option value="">All Products</option>
+            <?php foreach ($products as $s): ?>
+                <option value="<?= $s['product_code'] ?>" <?= $product===$s['product_code'] ?'selected':'' ?>><?= $s['product_code'] ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100">Filter</button>
+    </div>
+</form>
 
 <table class="table table-hover" style="text-align:center;">
     <thead class="table-dark">
