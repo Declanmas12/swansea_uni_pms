@@ -369,4 +369,5 @@ new Chart(document.getElementById('batchYieldChart'), {
 });
 </script>
 
-<?php require "../config/footer.php"; ?>
+<?php require "config/footer.php"; ?>
+
