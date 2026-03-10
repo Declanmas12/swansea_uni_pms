@@ -217,11 +217,12 @@ new Sortable(timeline, {
     onAdd: function (evt) {
 
         const stepId = evt.item.dataset.stepId;
+        const newPosition = evt.newIndex + 1;
 
         fetch('process_flow_step_add.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `process_flow_id=<?= $flow_id ?>&process_step_id=${stepId}`
+            body: `process_flow_id=<?= $flow_id ?>&process_step_id=${stepId}&position=${newPosition}`
         }).then(() => location.reload());
     },
 
@@ -230,7 +231,12 @@ new Sortable(timeline, {
         let order = [];
 
         document.querySelectorAll('#timeline li').forEach((el, idx) => {
-            order.push({ id: el.dataset.id, order: idx + 1 });
+            if (el.dataset.id) {
+                order.push({
+                    id: el.dataset.id,
+                    order: idx + 1
+                });
+            }
         });
 
         fetch('process_flow_reorder.php', {
@@ -302,3 +308,4 @@ searchBox.addEventListener('input', function () {
 </script>
 
 <?php require "../config/footer.php"; ?>
+
