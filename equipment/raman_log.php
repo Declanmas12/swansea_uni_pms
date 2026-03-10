@@ -21,7 +21,6 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <title>Raman Log</title>
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
             table { width: 100%; border-collapse: collapse; }
             th, td { padding: 10px; text-align: center; border-bottom: 1px solid #ddd; }
             th { background-color: #f4f4f4; }
@@ -164,4 +163,5 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <?php
 //  Close Connection
 $conn->close();
+
 ?>
