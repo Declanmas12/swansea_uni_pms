@@ -12,12 +12,6 @@ $stmt = $pdo->prepare("SELECT date_time, user, intensity, peak_pos, wavelength, 
 $stmt->execute();
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Raman Log</title>
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
         <style>
@@ -75,10 +69,6 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         </style>
-    </head>
-    <body>
-
-    <h2>SPECIFIC Labs A005 - Raman Calibration Log</h2>
     <hr>
     <h3>Input Raman Calibration Data</h3>
         <form class="form-inline" method="POST" action="insert_query.php" target="content">
@@ -156,12 +146,5 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $(document).on('submit', 'form', function () {
             setTimeout(function () { location.reload(true); }, 100);
         });
-    </script>
-    <?  require "../config/footer.php"; ?>
-</html>
-
-<?php
-//  Close Connection
-$conn->close();
-
-?>
+    </script> 
+<?  require "../config/footer.php"; ?>
