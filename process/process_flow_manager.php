@@ -202,10 +202,9 @@ foreach ($rows as $r) {
 </style>
 
 <script>
-const timeline = document.getElementById('timeline');
 const library = document.getElementById('stepLibrary');
+const timeline = document.getElementById('timeline');
 
-/* Timeline sortable */
 new Sortable(timeline, {
     animation: 150,
     disabled: <?= $flow['status'] === 'active' ? 'true' : 'false' ?>,
@@ -308,4 +307,3 @@ searchBox.addEventListener('input', function () {
 </script>
 
 <?php require "../config/footer.php"; ?>
-
