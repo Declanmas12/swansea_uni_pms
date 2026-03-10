@@ -368,3 +368,5 @@ new Chart(document.getElementById('batchYieldChart'), {
     options: { scales: { y: { beginAtZero:true, max:100 } } }
 });
 </script>
+
+<?php require "../config/footer.php"; ?>
