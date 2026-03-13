@@ -37,10 +37,13 @@ $stmt = $pdo->prepare("
         c.inventory_location,
         c.inventory_added_at,
         b.batch_code,
-        p.product_code
+        p.product_code,
+        eqe.cell_id,
+        eqe.id
     FROM cells c
     JOIN batches b ON b.id = c.batch_id
     JOIN products p ON p.id = b.product_id
+    LEFT JOIN eqe_measurements eqe ON eqe.cell_id = c.id
     $whereSql
     ORDER BY c.inventory_added_at DESC, c.cell_code
 ");
@@ -86,6 +89,13 @@ $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </form>
 
 <!-- =======================
+     Result Count
+======================= -->
+<div style="text-align: center;">
+    <p>Showing: <?= count($cells) ?> Result(s)</p>
+</div>
+
+<!-- =======================
      Inventory Table
 ======================= -->
 <table class="table table-sm table-hover align-middle" style="text-align:center;">
@@ -94,6 +104,8 @@ $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <th>Cell</th>
             <th>Product</th>
             <th>Batch</th>
+            <th>I-V</th>
+            <th>EQE</th>
             <th>State</th>
             <th>Location</th>
             <th>Added</th>
@@ -105,12 +117,18 @@ $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php foreach ($cells as $c): ?>
         <tr VALIGN="MIDDLE">
             <td>
-                <a href="cell_view.php?cell=<?= urlencode($c['cell_code']) ?>">
+                <a style="text-decoration: none;" href="cell_view.php?cell=<?= urlencode($c['cell_code']) ?>">
                     <?= htmlspecialchars($c['cell_code']) ?>
                 </a>
             </td>
             <td><?= htmlspecialchars($c['product_code']) ?></td>
             <td><?= htmlspecialchars($c['batch_code']) ?></td>
+            <td></td>
+            <?php if($c['cell_id'] == null) :?>
+            <td><a class="text-danger" style="text-decoration:none;" href="upload_eqe.php?cell_code=<?= $c['cell_code'] ?>">✖</a></td>
+            <?php else:  ?>
+            <td><a class="text-success" style="text-decoration:none;" href="view_eqe.php?id=<?= $c['id'] ?> ">✔</a></td>
+            <?php endif ?>
             <td>
                 <span class="badge badge-<?= $c['inventory_status'] ?>">
                     <?= $c['inventory_status'] ?>
