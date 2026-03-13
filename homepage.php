@@ -92,9 +92,9 @@ $yieldData = $yieldStmt->fetchAll(PDO::FETCH_ASSOC);
             <a href="../products/products_list.php" class="btn btn-primary">Products</a>
             <a href="../process/process_flows.php" class="btn btn-warning">Process Flows</a>
             <a href="../process/process_steps.php" class="btn btn-dark">Process Steps</a>
-            <a href="../cells/cell_inventory.php?search=&state=AVAILABLE" class="btn btn-info">Cell Inventory</a>
-            <a href="../modules/module_list.php" class="btn btn-secondary">Modules</a>
-            <a href="../equipment/" class="btn btn-primary">Equipment</a>
+            <a href="/cells/" class="btn btn-info">Cells</a>
+            <a href="../modules/module_list.php" class="btn btn-secondary">Arrays</a>
+            <a href="/equipment/" class="btn btn-primary">Equipment</a>
         </div>
     </div>
 
