@@ -2,6 +2,7 @@
 // equipment/index.php
 $pageTitle = "Cell Dashboard";
 require "../config/header.php";
+require "../config/auth.php";
 ?>
     <meta charset="UTF-8">
     <title><?= htmlspecialchars($pageTitle) ?></title>
@@ -57,11 +58,15 @@ require "../config/header.php";
     </a>
     <a class="card" href="eqe_test_list.php">
         <i class="fas fa-chart-area"></i>
-        <span>EQE Test Results</span>
+        <span>Cell EQE Test Results</span>
     </a>
     <a class="card" href="iv_test_list.php">
         <i class="fas fa-chart-line"></i>
-        <span>I-V Test Results</span>
+        <span>Cell I-V Test Results</span>
+    </a>
+    <a class="card" href="cell_pixel_list.php?search=&state=AVAILABLE">
+        <i class="fas fa-network-wired"></i>
+        <span>Cell Pixels</span>
     </a>
 </div>
 

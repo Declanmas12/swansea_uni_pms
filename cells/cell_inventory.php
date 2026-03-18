@@ -9,6 +9,7 @@ require "../config/auth.php";
 ------------------------- */
 $state = $_GET['state'] ?? '';
 $search = trim($_GET['search'] ?? '');
+$limit = trim($_GET['limit'] ?? '100');
 
 $params = [];
 $where = [];
@@ -31,7 +32,8 @@ $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
    Inventory Query
 ------------------------- */
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
+        c.id,
         c.cell_code,
         c.inventory_status,
         c.inventory_location,
@@ -39,13 +41,14 @@ $stmt = $pdo->prepare("
         b.batch_code,
         p.product_code,
         eqe.cell_id,
-        eqe.id
+        eqe.id as eqe_id
     FROM cells c
     JOIN batches b ON b.id = c.batch_id
     JOIN products p ON p.id = b.product_id
     LEFT JOIN eqe_measurements eqe ON eqe.cell_id = c.id
     $whereSql
     ORDER BY c.inventory_added_at DESC, c.cell_code
+    LIMIT $limit
 ");
 $stmt->execute($params);
 $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -70,10 +73,15 @@ $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <!-- =======================
      Filters
 ======================= -->
-<form class="row g-2 mb-3">
+<form class="row g-2 mb-3 align-items-end bg-light p-3 border rounded mx-0 justify-content-between">
     <div class="col-md-4">
         <input class="form-control" name="search" placeholder="Search cell, batch, product"
                value="<?= htmlspecialchars($search) ?>">
+    </div>
+    <div class="col-md-3 d-flex align-items-center">
+        <label for="limit" class="me-2 text-nowrap">No. of Results</label>
+        <input class="form-control" id="limit" name="limit" placeholder="100"
+               value="<?= htmlspecialchars($limit) ?>">
     </div>
     <div class="col-md-3">
         <select class="form-select" name="state">
@@ -106,6 +114,7 @@ $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <th>Batch</th>
             <th>I-V</th>
             <th>EQE</th>
+            <th>No. of Pixels</th>
             <th>State</th>
             <th>Location</th>
             <th>Added</th>
@@ -114,7 +123,21 @@ $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($cells as $c): ?>
+        <?php foreach ($cells as $c):
+
+            $stmt = $pdo->prepare("SELECT count(pixel_code) as pixels FROM production.cell_pixels WHERE cell_id = ?");
+            $stmt->execute([$c['id']]);
+            $pixels = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($pixels['pixels'] == 0) : {
+                $pixels['pixels'] = '';
+            } endif;
+
+            $stmt = $pdo->prepare("SELECT id FROM production.iv_measurements WHERE cell_id = ? ORDER BY test_date DESC LIMIT 1");
+            $stmt->execute([$c['id']]);
+            $IV = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            ?>
         <tr VALIGN="MIDDLE">
             <td>
                 <a style="text-decoration: none;" href="cell_view.php?cell=<?= urlencode($c['cell_code']) ?>">
@@ -123,11 +146,26 @@ $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </td>
             <td><?= htmlspecialchars($c['product_code']) ?></td>
             <td><?= htmlspecialchars($c['batch_code']) ?></td>
-            <td></td>
-            <?php if($c['cell_id'] == null) :?>
-            <td><a class="text-danger" style="text-decoration:none;" href="upload_eqe.php?cell_code=<?= $c['cell_code'] ?>">✖</a></td>
+
+            <?php if (!isset($IV['id'])) :?>
+                <td><a class="text-danger" style="text-decoration:none;" href="iv_upload.php">✖</a></td>
             <?php else:  ?>
-            <td><a class="text-success" style="text-decoration:none;" href="view_eqe.php?id=<?= $c['id'] ?> ">✔</a></td>
+                <td><a class="text-success" style="text-decoration:none;" href="view_iv.php?id=<?= $IV['id'] ?> ">✔</a></td>
+            <?php endif ?>
+
+            <?php if($c['cell_id'] == null) :?>
+                <td><a class="text-danger" style="text-decoration:none;" href="upload_eqe.php?cell_code=<?= $c['cell_code'] ?>">✖</a></td>
+            <?php else:  ?>
+                <td><a class="text-success" style="text-decoration:none;" href="view_eqe.php?id=<?= $c['eqe_id'] ?> ">✔</a></td>
+            <?php endif ?>
+            <?php if ($pixels['pixels'] != null) : ?>
+                <td>
+                    <a style="text-decoration: none;" href="view_pixels.php?cell_id=<?= $c['id'] ?>"><?= $pixels['pixels'] ?></a>
+                </td>
+            <?php else: ?>
+                <td>
+                    <a style="text-decoration: none;" href="#">--</a>
+                </td>
             <?php endif ?>
             <td>
                 <span class="badge badge-<?= $c['inventory_status'] ?>">
@@ -136,16 +174,12 @@ $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </td>
             <td><?= htmlspecialchars($c['inventory_location'] ?? '-') ?></td>
             <td><?= $c['inventory_added_at'] ?></td>
-            <?php if($c['inventory_status'] == 'AVAILABLE' || $c['inventory_status'] == 'IN_PROCESS') : ?>
+            <?php if($c['inventory_status'] == 'AVAILABLE' || $c['inventory_status'] == 'IN_PROCESS'): ?>
             <td>
                 <button type="button"
                     class="btn btn-sm btn-outline-primary rename-btn"
                     data-cell="<?= htmlspecialchars($c['cell_code']) ?>">
                     Rename
-                </button>
-                <button type="button"
-                    class="btn btn-sm btn-outline-primary location-btn">
-                    Move Location
                 </button>
             </td>
             <?php else: ?>
@@ -157,6 +191,8 @@ $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <span class="text-success">✔ Ready</span>
                 <?php elseif ($c['inventory_status'] === 'RESERVED'): ?>
                     <span class="text-warning">Allocated</span>
+                <?php elseif ($c['inventory_status'] === 'SCRAPPED'): ?>
+                    <span class="text-danger">✖ Scrapped</span>
                 <?php endif; ?>
             </td>
         </tr>

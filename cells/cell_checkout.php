@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $pdo->commit();
-            header("Location: cell_inventory.php");
+            header("Location: cell_inventory.php?search=&limit=100&state=RESERVED");
             exit;
 
         } catch (Exception $e) {
