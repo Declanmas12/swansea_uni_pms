@@ -147,11 +147,13 @@ $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <td><?= htmlspecialchars($c['product_code']) ?></td>
             <td><?= htmlspecialchars($c['batch_code']) ?></td>
 
+
             <?php if (!isset($IV['id'])) :?>
                 <td><a class="text-danger" style="text-decoration:none;" href="iv_upload.php">✖</a></td>
             <?php else:  ?>
                 <td><a class="text-success" style="text-decoration:none;" href="view_iv.php?id=<?= $IV['id'] ?> ">✔</a></td>
             <?php endif ?>
+            
 
             <?php if($c['cell_id'] == null) :?>
                 <td><a class="text-danger" style="text-decoration:none;" href="upload_eqe.php?cell_code=<?= $c['cell_code'] ?>">✖</a></td>
@@ -160,11 +162,11 @@ $cells = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endif ?>
             <?php if ($pixels['pixels'] != null) : ?>
                 <td>
-                    <a style="text-decoration: none;" href="view_pixels.php?cell_id=<?= $c['id'] ?>"><?= $pixels['pixels'] ?></a>
+                    <a style="text-decoration: none;" href="view_pixels.php?id=<?= $c['id'] ?>"><?= $pixels['pixels'] ?></a>
                 </td>
             <?php else: ?>
                 <td>
-                    <a style="text-decoration: none;" href="#">--</a>
+                    <a style="text-decoration: none;" href="add_pixels.php?id=<?= $c['id'] ?>">--</a>
                 </td>
             <?php endif ?>
             <td>
